@@ -1,14 +1,10 @@
 <?php
 
-add_action( 'wp_head', function() {
-	echo '<style>.js-tabcontent[aria-hidden=true] { display: none; }</style>';
-});
-
-// Register tab js.
+// Register tab JS and CSS.
 add_action( 'wp_enqueue_scripts', 'acftc_load_scripts' );
 function acftc_load_scripts() {
 	wp_register_script( 'jquery-accessible-nested-tabs', ACF_TABBED_CONTENT_PLUGIN_URL . '/assets/js/jquery-accessible-nested-tabs.js', array( 'jquery' ), '1.6.1', true );
-	// wp_register_script( 'acftc-tabs', ACF_TABBED_CONTENT_PLUGIN_URL . '/assets/js/acftc-tabs.js', array( 'jquery-accessible-nested-tabs' ), ACF_TABBED_CONTENT_VERSION, true );
+	wp_register_style( 'acftc-style', ACF_TABBED_CONTENT_PLUGIN_URL . '/assets/css/acftc-style.css', array(), ACF_TABBED_CONTENT_VERSION );
 }
 
 add_action( 'template_redirect', 'acftc_theme_location' );
@@ -90,33 +86,34 @@ function acftc_theme_location() {
 }
 
 function acftc_display_before_content() {
-	$tabs = acftc_get_all_custom_field_meta( get_the_ID(), acftc()->tabbed_content_fields_config() );
-	echo acftc_get_tabs( $tabs, get_the_ID() );
+	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
+	echo acftc_get_tabs( $tabs );
 }
 
 function acftc_display_before_content_filter( $content ) {
-	$tabs = acftc_get_all_custom_field_meta( get_the_ID(), acftc()->tabbed_content_fields_config() );
-	return acftc_get_tabs( $tabs, get_the_ID() ) . $content;
+	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
+	return acftc_get_tabs( $tabs ) . $content;
 }
 
 function acftc_display_after_content() {
-	$tabs = acftc_get_all_custom_field_meta( get_the_ID(), acftc()->tabbed_content_fields_config() );
-	echo acftc_get_tabs( $tabs, get_the_ID() );
+	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
+	echo acftc_get_tabs( $tabs );
 }
 
 function acftc_display_after_content_filter( $content ) {
-	$tabs = acftc_get_all_custom_field_meta( get_the_ID(), acftc()->tabbed_content_fields_config() );
-	return $content . acftc_get_tabs( $tabs, get_the_ID() );
+	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
+	return $content . acftc_get_tabs( $tabs );
 }
 
 /**
- * Helper function to get the tabs, maybe as vertical tabs.
+ * Helper function to get the tabs, maybe as nested tabs.
  *
- * @param  bool  $vertical  Whether this should be a horizontal or vertical tab group.
+ * @param  array  $tabs     The ACF repeater field for the tabs. Keys of 'title', 'content', and possibley 'tabs'.
+ * @param  bool   $nested   Whether this should be a horizontal or nested tab group.
  *
  * @return string|HTML      The tab group HTML.
  */
-function acftc_get_tabs( $tabs = '', $vertical = false ) {
+function acftc_get_tabs( $tabs = '', $nested = false ) {
 
 	// Bail if no tabs.
 	if ( ! $tabs || ! is_array( $tabs ) ) {
@@ -135,18 +132,19 @@ function acftc_get_tabs( $tabs = '', $vertical = false ) {
 		return;
 	}
 
-d( $tabs );
+	static $acftc_scripts = false;
 
-	// Enqueue our script now that we know we have tabs.
-	wp_enqueue_script( 'jquery-accessible-nested-tabs' );
-	// wp_enqueue_script( 'acftc-tabs' );
+	// Enqueue our script.
+	if ( ! $acftc_scripts ) {
+		wp_enqueue_script( 'jquery-accessible-nested-tabs' );
+		wp_enqueue_style( 'acftc-style' );
+		$acftc_scripts = true;
+	}
 
-	$prefix = 'acftc-';
+	$prefix = $nested ? 'child-tab-' : 'tab-';
 	$html   = '';
 
-	if ( ! $vertical ) {
-		$html .= '<div class="js-tabs">';
-	}
+	$html .= $nested ? '<div class="js-tabs js-tabs-nested">' : '<div class="js-tabs js-tabs-parent">';
 
 		// Tab wrap.
 		$html .= '<ul class="js-tablist">';
@@ -160,8 +158,7 @@ d( $tabs );
 				}
 
 				// Output the title.
-				// $html .= sprintf( '<li class="js-tablist__item"><a href="#%s" id="label_%s" class="js-tablist__link">%s</a></li>', sanitize_key( $prefix . $tab['title'] ), sanitize_key( $prefix . $tab['title'] ), sanitize_text_field( $tab['title'] ) );
-				$html .= sprintf( '<li class="js-tablist__item"><a href="#%s" class="js-tablist__link">%s</a></li>', sanitize_key( $prefix . $tab['title'] ), sanitize_text_field( $tab['title'] ) );
+				$html .= sprintf( '<li class="js-tablist__item"><a href="#%s" id="label_%s" class="js-tablist__link">%s</a></li>', sanitize_title_with_dashes( $prefix . $tab['title'] ), sanitize_title_with_dashes( $prefix . $tab['title'] ), sanitize_text_field( $tab['title'] ) );
 			}
 
 		$html .= '</ul>';
@@ -177,21 +174,17 @@ d( $tabs );
 			$content = isset( $tab['content'] ) ? $tab['content'] : '';
 
 			if ( isset( $tab['tabs'] ) ) {
-				$nested = $tab['tabs'];
-				d( $nested );
-				$nested_tabs = acftc_get_tabs( $tab['tabs'], true );
+				$nested_tabs = acftc_get_tabs( $tab, true );
 				if ( ! empty( $nested_tabs ) ) {
 					$content .= $nested_tabs;
 				}
 			}
 
 			// Output the content.
-			$html .= sprintf( '<div id="%s" class="js-tabcontent">%s</div>', sanitize_key( $prefix . $tab['title'] ), $content );
+			$html .= sprintf( '<div id="%s" class="js-tabcontent">%s</div>', sanitize_title_with_dashes( $prefix . $tab['title'] ), $content );
 		}
 
-	if ( ! $vertical ) {
-		$html .= '</div>';
-	}
+	$html .= '</div>';
 
 	return $html;
 }
@@ -216,7 +209,7 @@ d( $tabs );
  *                         ACF export field groups array.
  * @return array
  */
-function acftc_get_all_custom_field_meta( $post_id, array $config ) {
+function acftc_get_field( $post_id, array $config ) {
 
 	$results = array();
 
@@ -261,7 +254,7 @@ function acftc_get_all_custom_field_meta( $post_id, array $config ) {
 					[
 						'acf_fc_layout' => $current_layout_type,
 					],
-					acftc_get_all_custom_field_meta( $post_id, $new_config )
+					acftc_get_field( $post_id, $new_config )
 				);
 			}
 		} elseif ( isset( $field['sub_fields'] ) ) { // We're dealing with repeater fields.
@@ -281,7 +274,7 @@ function acftc_get_all_custom_field_meta( $post_id, array $config ) {
 					$field_config['meta_key_prefix'] = $meta_key . "_{$i}_";
 				}
 
-				$results[ $field['name'] ][] = acftc_get_all_custom_field_meta( $post_id, $new_config );
+				$results[ $field['name'] ][] = acftc_get_field( $post_id, $new_config );
 			}
 		} else {
 			$results[ $field['name'] ] = $field_value;

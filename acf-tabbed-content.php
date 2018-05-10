@@ -132,7 +132,7 @@ final class ACF_Tabbed_Content {
 		register_activation_hook(   __FILE__, 'flush_rewrite_rules' );
 		register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
 		add_action( 'admin_init', array( $this, 'updater' ) );
-		add_action( 'admin_menu', array( $this, 'settings_page' ) );
+		add_action( 'acf/init',   array( $this, 'settings_page' ) );
 	}
 
 	/**
@@ -150,18 +150,16 @@ final class ACF_Tabbed_Content {
 	}
 
 	public function settings_page() {
-		if ( function_exists( 'acf_add_options_page' ) ) {
-			acf_add_options_sub_page( array(
-				'page_title' 	=> 'Tabbed Content',
-				'menu_title'	=> 'Tabbed Content',
-				'parent_slug'	=> 'options-general.php',
-			) );
-		}
+		acf_add_options_sub_page( array(
+			'page_title' 	=> 'Tabbed Content',
+			'menu_title'	=> 'Tabbed Content',
+			'parent_slug'	=> 'options-general.php',
+		) );
 	}
 
 	public function run() {
 		add_filter( 'acf/load_field/key=field_5af33b0730c53', array( $this, 'load_post_types' ) );
-		add_action( 'acf/init', array( $this, 'load_field_groups' ) );
+		add_action( 'acf/init',                               array( $this, 'load_field_groups' ) );
 	}
 
 	public function load_post_types( $field ) {
