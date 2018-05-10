@@ -4,12 +4,16 @@
 
 .js-tabs > .tabs__list .tabs__link {
 	display: block;
-}
-
-.js-tabs > .tabs__list .tabs__link {
 	color: rgba(0,0,0,.5);
+	line-height: 1.5;
 }
 
+.js-tabs > .tabs__list .tabs__link:hover {
+	cursor: pointer;
+}
+
+.js-tabs > .tabs__list .tabs__link:focus,
+.js-tabs > .tabs__list .tabs__link:hover,
 .js-tabs > .tabs__list .tabs__link[aria-selected=true] {
 	color: rgba(0,0,0,.8);
 }
@@ -114,8 +118,8 @@
 }
 
 .js-tabs-nested > .tabs__list .tabs__item:last-child::after {
-	bottom: -23px;
-	height: 24px;
+	bottom: -15px;
+	height: 16px;
 }
 
 .js-tabs-nested > .tabs__list .tabs__link {
