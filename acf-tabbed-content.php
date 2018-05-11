@@ -184,12 +184,26 @@ final class ACF_Tabbed_Content {
 			'fields' => array(
 				array(
 					'key'           => 'field_5af33b0730c53',
-					'label'         => 'Post Types',
+					'label'         => __( 'Post Types', 'acf-tabbed-content' ),
 					'name'          => 'acftc_post_types',
 					'type'          => 'checkbox',
-					'instructions'  => 'Display the tabbed content metabox on the following post types.',
+					'instructions'  => __( 'Enable tabs on the following post types.', 'acf-tabbed-content' ),
 					'choices'       => $this->get_post_types(),
 					'default_value' => $this->get_post_type_defaults(),
+					'layout'        => 'vertical',
+					'return_format' => 'value',
+				),
+				array(
+					'key'           => 'field_6abg44c1841d64',
+					'label'         => __( 'Display', 'acf-tabbed-content' ),
+					'name'          => 'acftc_display',
+					'type'          => 'radio',
+					'instructions'  => __( 'Location of tabbed content.', 'acf-tabbed-content' ),
+					'choices'       => array(
+						'before' => __( 'Before Content', 'acf-tabbed-content' ),
+						'after'  => __( 'After Content', 'acf-tabbed-content' ),
+					),
+					'default_value' => 'after',
 					'layout'        => 'vertical',
 					'return_format' => 'value',
 				),
@@ -216,7 +230,7 @@ final class ACF_Tabbed_Content {
 		// Tabbed Content.
 		acf_add_local_field_group( array(
 			'key'                   => 'group_59c02d79966e4',
-			'title'                 => 'Tabbed Content',
+			'title'                 => __( 'Tabbed Content', 'acf-tabbed-content' ),
 			'fields'                => $this->tabbed_content_fields_config(),
 			'location'              => $this->get_metabox_location(),
 			'menu_order'            => 0,
@@ -234,23 +248,23 @@ final class ACF_Tabbed_Content {
 		return array(
 			array(
 				'key'          => 'field_59c02db106f90',
-				'label'        => 'Tabs',
+				'label'        => __( 'Tabs', 'acf-tabbed-content' ),
 				'name'         => 'tabs',
 				'type'         => 'repeater',
 				'collapsed'    => 'field_59c02dee06f91',
 				'layout'       => 'block',
-				'button_label' => 'Add Tab',
+				'button_label' => __( 'Add Tab', 'acf-tabbed-content' ),
 				'sub_fields'   => array(
 					array(
 						'key'          => 'field_59c02dee06f91',
-						'label'        => 'Title',
+						'label'        => __( 'Title', 'acf-tabbed-content' ),
 						'name'         => 'title',
 						'type'         => 'text',
 						'required'     => 1,
 					),
 					array(
 						'key'          => 'field_59c02f1d06f92',
-						'label'        => 'Content',
+						'label'        => __( 'Content', 'acf-tabbed-content' ),
 						'name'         => 'content',
 						'type'         => 'wysiwyg',
 						'tabs'         => 'all',
@@ -260,23 +274,23 @@ final class ACF_Tabbed_Content {
 					),
 					array(
 						'key'          => 'field_59c030d2694b7',
-						'label'        => 'Child Tabs',
+						'label'        => __( 'Child Tabs', 'acf-tabbed-content' ),
 						'name'         => 'tabs',
 						'type'         => 'repeater',
 						'collapsed'    => 'field_59e7d655a8de2',
 						'layout'       => 'block',
-						'button_label' => 'Add Child Tab',
+						'button_label' => __( 'Add Child Tab', 'acf-tabbed-content' ),
 						'sub_fields'   => array(
 							array(
 								'key'      => 'field_59e7d655a8de2',
-								'label'    => 'Title',
+								'label'    => __( 'Title', 'acf-tabbed-content' ),
 								'name'     => 'title',
 								'type'     => 'text',
 								'required' => 1,
 							),
 							array(
 								'key'          => 'field_59e7d66ca8de3',
-								'label'        => 'Content',
+								'label'        => __( 'Content', 'acf-tabbed-content' ),
 								'name'         => 'content',
 								'type'         => 'wysiwyg',
 								'tabs'         => 'all',

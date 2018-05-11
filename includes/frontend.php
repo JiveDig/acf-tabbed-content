@@ -15,20 +15,20 @@ function acftc_theme_location() {
 		return;
 	}
 
+// delete_option( 'options-acftc_display' );
+
 	// Genesis Hooks.
 	if ( 'genesis' === get_template() ) {
 		$locations = array(
 			'before' => array(
-				'hook'     => 'genesis_entry_header',
-				'filter'   => false,
-				'priority' => 13,
-				'style'    => false,
-			),
-			'after'  => array(
-				'hook'     => 'genesis_entry_footer',
+				'hook'     => 'genesis_entry_content',
 				'filter'   => false,
 				'priority' => 8,
-				'style'    => false,
+			),
+			'after'  => array(
+				'hook'     => 'genesis_entry_content',
+				'filter'   => false,
+				'priority' => 10,
 			),
 		);
 	}
@@ -39,13 +39,11 @@ function acftc_theme_location() {
 				'hook'     => 'tha_entry_top',
 				'filter'   => false,
 				'priority' => 13,
-				'style'    => false,
 			),
 			'after'  => array(
 				'hook'     => 'tha_entry_bottom',
 				'filter'   => false,
 				'priority' => 8,
-				'style'    => false,
 			),
 		);
 	}
@@ -55,14 +53,12 @@ function acftc_theme_location() {
 			'before' => array(
 				'hook'     => false,
 				'filter'   => 'the_content',
-				'priority' => 8,
-				'style'    => false,
+				'priority' => 9,
 			),
 			'after'  => array(
 				'hook'     => false,
 				'filter'   => 'the_content',
-				'priority' => 12,
-				'style'    => false,
+				'priority' => 11,
 			),
 		);
 	}
@@ -70,19 +66,20 @@ function acftc_theme_location() {
 	// Filter theme locations.
 	$locations = apply_filters( 'acftc_theme_locations', $locations );
 
-	// Display tabs before content.
-	// if ( $locations['before']['hook'] ) {
-	// 	add_action( $locations['before']['hook'], 'acftc_display_before_content', $locations['before']['priority'] );
-	// } elseif ( $locations['before']['filter'] && ! is_feed() ) {
-	// 	add_filter( $locations['before']['filter'], 'acftc_display_before_content_filter', $locations['before']['priority'] );
-	// }
-	// Display tabs after content.
-	if ( $locations['after']['hook'] ) {
-		add_action( $locations['after']['hook'], 'acftc_display_after_content', $locations['after']['priority'] );
-	} elseif ( $locations['after']['filter'] && ! is_feed() ) {
-		add_filter( $locations['after']['filter'], 'acftc_display_after_content_filter', $locations['after']['priority'] );
+	// Get display location.
+	$display = get_option( 'options_acftc_display', 'after' );
+
+	// Bail if not a valid display location.
+	if ( ! in_array( $display, array( 'before', 'after' ) ) ) {
+		return;
 	}
 
+	// Display tabs.
+	if ( $locations[ $display ]['hook'] ) {
+		add_action( $locations[ $display ]['hook'], "acftc_display_{$display}_content", $locations[ $display ]['priority'] );
+	} elseif ( $locations[ $display ]['filter'] && ! is_feed() ) {
+		add_filter( $locations[ $display ]['filter'], "acftc_display_{$display}_content_filter", $locations[ $display ]['priority'] );
+	}
 }
 
 function acftc_display_before_content() {
@@ -132,6 +129,8 @@ function acftc_get_tabs( $tabs = '', $nested = false ) {
 		return;
 	}
 
+	global $wp_embed;
+
 	static $acftc_scripts = false;
 
 	// Enqueue our script.
@@ -141,10 +140,14 @@ function acftc_get_tabs( $tabs = '', $nested = false ) {
 		$acftc_scripts = true;
 	}
 
-	$prefix = $nested ? 'child-tab-' : 'tab-';
-	$html   = '';
+	// Set some variables.
+	$prefix  = $nested ? 'child-tab-' : 'tab-';
+	$classes = 'js-tabs';
+	$classes = $nested ? $classes : sprintf( '%s tabs-%s-content', $classes, sanitize_html_class( get_option( 'options_acftc_display', 'after' ) ) );
+	$classes = $nested ? $classes . ' js-tabs-nested' : $classes . ' js-tabs-parent';
+	$html    = '';
 
-	$html .= $nested ? '<div class="js-tabs js-tabs-nested">' : '<div class="js-tabs js-tabs-parent">';
+	$html .= sprintf( '<div class="%s">', $classes );
 
 		// Tab wrap.
 		$html .= '<ul class="js-tablist">';
@@ -179,6 +182,12 @@ function acftc_get_tabs( $tabs = '', $nested = false ) {
 					$content .= $nested_tabs;
 				}
 			}
+
+			$content = wptexturize( $content );
+			$content = wpautop( $content );
+			$content = do_shortcode( $content );
+			$content = $wp_embed->autoembed( $content );
+			$content = $wp_embed->run_shortcode( $content );
 
 			// Output the content.
 			$html .= sprintf( '<div id="%s" class="js-tabcontent">%s</div>', sanitize_title_with_dashes( $prefix . $tab['title'] ), $content );
