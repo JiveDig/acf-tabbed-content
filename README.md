@@ -6,7 +6,7 @@ Requires [Advanced Custom Fields Pro](https://advancedcustomfields.com/pro/) (no
 ## Features
 1. Responsive tabs.
 1. Nested tabs.
-1. Enable tabs on any public post type.
+1. Enable tabs on any public post types.
 1. Shareable links that with a specific tab (or nested tab) open.
 1. Tabbed content can include video embeds, shortcodes, etc.
 
