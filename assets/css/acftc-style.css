@@ -11,6 +11,9 @@
 	display: block;
 	color: rgba(0,0,0,.5);
 	line-height: 1.4;
+	text-decoration: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
 }
 
 .js-tabs > .tabs__list .tabs__link:hover {
@@ -21,6 +24,9 @@
 .js-tabs > .tabs__list .tabs__link:hover,
 .js-tabs > .tabs__list .tabs__link[aria-selected=true] {
 	color: rgba(0,0,0,.8);
+	text-decoration: none;
+	-webkit-box-shadow: none;
+	box-shadow: none;
 }
 
 .js-tabs > .tabs__list .tabs__link:active,
