@@ -152,6 +152,10 @@
 		margin-right: 36px;
 	}
 
+	.js-tabs-nested .tabs__item {
+		display: block;
+	}
+
 	.js-tabs-nested > .tabs__content {
 		-ms-flex-preferred-size: 0;
 		flex-basis: 0;
