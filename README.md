@@ -1,9 +1,11 @@
 # Tabbed Content
 An easy to use WordPress plugin to create responsive and accessible tabbed content for posts, pages, and CPT's. Thanks to nico3333fr for his [jquery-accessible-tabs-aria script](https://github.com/nico3333fr/jquery-accessible-tabs-aria).
 
+
 Requires [Advanced Custom Fields Pro](https://advancedcustomfields.com/pro/) (not included). Does not rely on `get_field()` so tabs will still display with ACF disabled, though you won't be able to edit them anymore.
 
 ## Features
+1. No code or configuration required, it just works.
 1. Responsive tabs.
 1. Nested tabs.
 1. Enable tabs on any public post types.
