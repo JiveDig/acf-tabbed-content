@@ -8,6 +8,7 @@
  *
  * Author:          Mike Hemberger
  * Author URI:      https://github.com/JiveDig/acf-tabbed-content
+ * Text Domain:     acf-tabbed-content
  */
 
 // Exit if accessed directly.
@@ -16,13 +17,13 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /**
  * Main ACF_Tabbed_Content Class.
  *
- * @since 1.0.0
+ * @since 0.1.0
  */
 final class ACF_Tabbed_Content {
 
 	/**
 	 * @var ACF_Tabbed_Content The one true ACF_Tabbed_Content
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 */
 	private static $instance;
 
@@ -32,7 +33,7 @@ final class ACF_Tabbed_Content {
 	 * Insures that only one instance of ACF_Tabbed_Content exists in memory at any one
 	 * time. Also prevents needing to define globals all over the place.
 	 *
-	 * @since   1.0.0
+	 * @since   0.1.0
 	 * @static  var array $instance
 	 * @return  object | ACF_Tabbed_Content The one true ACF_Tabbed_Content
 	 */
@@ -55,7 +56,7 @@ final class ACF_Tabbed_Content {
 	 * The whole idea of the singleton design pattern is that there is a single
 	 * object therefore, we don't want the object to be cloned.
 	 *
-	 * @since   1.0.0
+	 * @since   0.1.0
 	 * @access  protected
 	 * @return  void
 	 */
@@ -67,7 +68,7 @@ final class ACF_Tabbed_Content {
 	/**
 	 * Disable unserializing of the class.
 	 *
-	 * @since   1.0.0
+	 * @since   0.1.0
 	 * @access  protected
 	 * @return  void
 	 */
@@ -80,7 +81,7 @@ final class ACF_Tabbed_Content {
 	 * Setup plugin constants.
 	 *
 	 * @access  private
-	 * @since   1.0.0
+	 * @since   0.1.0
 	 * @return  void
 	 */
 	private function setup_constants() {
@@ -121,18 +122,22 @@ final class ACF_Tabbed_Content {
 	 * Include required files.
 	 *
 	 * @access  private
-	 * @since   1.0.0
+	 * @since   0.1.0
 	 * @return  void
 	 */
 	private function includes() {
 		foreach ( glob( ACF_TABBED_CONTENT_INCLUDES_DIR . '*.php' ) as $file ) { include $file; }
 	}
 
+	/**
+	 * Setup plugin and updater.
+	 *
+	 * @return  void
+	 */
 	public function setup() {
 		register_activation_hook(   __FILE__, 'flush_rewrite_rules' );
 		register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
 		add_action( 'admin_init', array( $this, 'updater' ) );
-		add_action( 'acf/init',   array( $this, 'settings_page' ) );
 	}
 
 	/**
@@ -149,6 +154,27 @@ final class ACF_Tabbed_Content {
 		$updater = Puc_v4_Factory::buildUpdateChecker( 'https://github.com/JiveDig/acf-tabbed-content/', __FILE__, 'acf-tabbed-content' );
 	}
 
+	/**
+	 * Run action hooks and filters.
+	 *
+	 * @uses    Advanced Custom Fields Pro.
+	 *
+	 * @return  void
+	 */
+	public function run() {
+		add_action( 'acf/init',                               array( $this, 'settings_page' ) );
+		add_action( 'acf/init',                               array( $this, 'load_field_groups' ) );
+		add_filter( 'acf/load_field/key=field_5af33b0730c53', array( $this, 'load_post_types' ) );
+	}
+
+	/**
+	 * Create the settings page.
+	 * This won't fail if ACF is deactivated since it's added via an ACF hook.
+	 *
+	 * @uses    Advanced Custom Fields Pro.
+	 *
+	 * @return  void
+	 */
 	public function settings_page() {
 		acf_add_options_sub_page( array(
 			'page_title' 	=> 'Tabbed Content',
@@ -157,25 +183,14 @@ final class ACF_Tabbed_Content {
 		) );
 	}
 
-	public function run() {
-		add_filter( 'acf/load_field/key=field_5af33b0730c53', array( $this, 'load_post_types' ) );
-		add_action( 'acf/init',                               array( $this, 'load_field_groups' ) );
-	}
-
-	public function load_post_types( $field ) {
-		$post_types       = get_post_types( array( 'public' => true ), 'names' );
-		$field['choices'] = apply_filters( 'acftc_post_types', $post_types );
-		// Set page as a default.
-		if ( isset( $field['choices']['page'] ) ) {
-			$field['default_value'][] = 'page';
-		}
-		// Set post as a default.
-		if ( isset( $field['choices']['post'] ) ) {
-			$field['default_value'][] = 'post';
-		}
-		return $field;
-	}
-
+	/**
+	 * Add field groups.
+	 * These won't fail if ACF is deactivated since it's added via an ACF hook.
+	 *
+	 * @uses    Advanced Custom Fields Pro.
+	 *
+	 * @return  void
+	 */
 	public function load_field_groups() {
 		// Settings.
 		acf_add_local_field_group( array(
@@ -232,7 +247,7 @@ final class ACF_Tabbed_Content {
 			'key'                   => 'group_59c02d79966e4',
 			'title'                 => __( 'Tabbed Content', 'acf-tabbed-content' ),
 			'fields'                => $this->tabbed_content_fields_config(),
-			'location'              => $this->get_metabox_location(),
+			'location'              => $this->get_metabox_location_config(),
 			'menu_order'            => 0,
 			'position'              => 'normal',
 			'style'                 => 'default',
@@ -244,6 +259,13 @@ final class ACF_Tabbed_Content {
 		) );
 	}
 
+	/**
+	 * Create the tabbed content fields config.
+	 *
+	 * @uses    Advanced Custom Fields Pro.
+	 *
+	 * @return  array  The config data.
+	 */
 	public function tabbed_content_fields_config() {
 		return array(
 			array(
@@ -306,25 +328,33 @@ final class ACF_Tabbed_Content {
 	}
 
 	/**
-	 * Get formatted post types for metaboxes.
+	 * Get the post types for the settings page.
 	 *
-	 * return array(
-	 *    'name' => 'singluar_name',
-	 * );
+	 * @uses    Advanced Custom Fields Pro.
 	 *
-	 * return array(
-	 *    'page' => 'Page',
-	 * );
+	 * @return  array  The metabox field choices.
 	 */
-	public function get_post_types() {
-		$choices    = array();
-		$post_types = get_post_types( array( 'public' => true ), 'objects' );
-		foreach( $post_types as $post_type ) {
-			$choices[ $post_type->name ] = $post_type->labels->singular_name;
+	public function load_post_types( $field ) {
+		// Get public post types.
+		$field['choices'] = get_post_types( array( 'public' => true ), 'names' );
+		// Set page as a default.
+		if ( isset( $field['choices']['page'] ) ) {
+			$field['default_value'][] = 'page';
 		}
-		return apply_filters( 'acftc_post_types', $choices );
+		// Set post as a default.
+		if ( isset( $field['choices']['post'] ) ) {
+			$field['default_value'][] = 'post';
+		}
+		return $field;
 	}
 
+	/**
+	 * Get the default post types for tabs.
+	 *
+	 * @uses    Advanced Custom Fields Pro.
+	 *
+	 * @return  array  The default post types.
+	 */
 	public function get_post_type_defaults() {
 		$defaults   = array();
 		$post_types = $this->get_post_types();
@@ -336,10 +366,41 @@ final class ACF_Tabbed_Content {
 		if ( isset( $post_types['post'], $post_types ) ) {
 			$defaults[] = 'post';
 		}
-		return apply_filters( 'acftc_post_type_defaults', $defaults );
+		return $defaults;
 	}
 
-	public function get_metabox_location() {
+	/**
+	 * Get formatted post types for metaboxes.
+	 *
+	 * @uses  Advanced Custom Fields Pro.
+	 *
+	 * return array(
+	 *    'name' => 'singular_name',
+	 * );
+	 *
+	 * return array(
+	 *    'page' => 'Page',
+	 * );
+	 *
+	 * @return  array  The formatted post types.
+	 */
+	public function get_post_types() {
+		$choices    = array();
+		$post_types = get_post_types( array( 'public' => true ), 'objects' );
+		foreach( $post_types as $post_type ) {
+			$choices[ $post_type->name ] = $post_type->labels->singular_name;
+		}
+		return $choices;
+	}
+
+	/**
+	 * Get the metabox location config from settings field.
+	 *
+	 * @uses    Advanced Custom Fields Pro.
+	 *
+	 * @return  array  The metabox location config.
+	 */
+	public function get_metabox_location_config() {
 		$location   = array();
 		$post_types = get_option( 'options_acftc_post_types', array() );
 		if ( ! empty( $post_types ) ) {
@@ -367,7 +428,7 @@ final class ACF_Tabbed_Content {
  *
  * Example: <?php $plugin = acftc(); ?>
  *
- * @since 1.0.0
+ * @since 0.1.0
  *
  * @return object|ACF_Tabbed_Content The one true ACF_Tabbed_Content Instance.
  */

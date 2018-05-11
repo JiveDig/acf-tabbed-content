@@ -1,21 +1,31 @@
 <?php
 
-// Register tab JS and CSS.
+/**
+ * Register tab JS and CSS.
+ * These are enqueued later only on single pages/posts/cpts with tabs.
+ *
+ * @return  void
+ */
 add_action( 'wp_enqueue_scripts', 'acftc_load_scripts' );
 function acftc_load_scripts() {
 	wp_register_script( 'jquery-accessible-nested-tabs', ACF_TABBED_CONTENT_PLUGIN_URL . '/assets/js/jquery-accessible-nested-tabs.js', array( 'jquery' ), '1.6.1', true );
 	wp_register_style( 'acftc-style', ACF_TABBED_CONTENT_PLUGIN_URL . '/assets/css/acftc-style.css', array(), ACF_TABBED_CONTENT_VERSION );
 }
 
-add_action( 'template_redirect', 'acftc_theme_location' );
-function acftc_theme_location() {
+/**
+ * Do the tabs location.
+ * Gets the correct hooks/filters to display the tabs.
+ * Thanks to Jared Atch & Bill Erickson for the borrowed code.
+ *
+ * @return  void
+ */
+add_action( 'template_redirect', 'acftc_tabs_location' );
+function acftc_tabs_location() {
 
 	// Bail if not viewing a post type we want.
 	if ( ! is_singular( get_option( 'options_acftc_post_types', array() ) ) ) {
 		return;
 	}
-
-// delete_option( 'options-acftc_display' );
 
 	// Genesis Hooks.
 	if ( 'genesis' === get_template() ) {
@@ -81,22 +91,18 @@ function acftc_theme_location() {
 		add_filter( $locations[ $display ]['filter'], "acftc_display_{$display}_content_filter", $locations[ $display ]['priority'] );
 	}
 }
-
 function acftc_display_before_content() {
 	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
 	echo acftc_get_tabs( $tabs );
 }
-
 function acftc_display_before_content_filter( $content ) {
 	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
 	return acftc_get_tabs( $tabs ) . $content;
 }
-
 function acftc_display_after_content() {
 	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
 	echo acftc_get_tabs( $tabs );
 }
-
 function acftc_display_after_content_filter( $content ) {
 	$tabs = acftc_get_field( get_the_ID(), acftc()->tabbed_content_fields_config() );
 	return $content . acftc_get_tabs( $tabs );
@@ -208,15 +214,15 @@ function acftc_get_tabs( $tabs = '', $nested = false ) {
  * This function is especially useful when working with ACF repeater fields and
  * flexible content layouts.
  *
- * @link    https://www.timjensen.us/acf-get-field-alternative/
+ * @link     https://www.timjensen.us/acf-get-field-alternative/
  *
- * @version 1.2.5
+ * @version  1.2.5
  *
- * @param integer $post_id Required. Post ID.
- * @param array   $config  Required. An array that represents the structure of
- *                         the custom fields. Follows the same format as the
- *                         ACF export field groups array.
- * @return array
+ * @param    integer  $post_id  Required. Post ID.
+ * @param    array    $config   Required. An array that represents the structure of
+ *                              the custom fields. Follows the same format as the
+ *                              ACF export field groups array.
+ * @return   array
  */
 function acftc_get_field( $post_id, array $config ) {
 
@@ -236,7 +242,8 @@ function acftc_get_field( $post_id, array $config ) {
 
 		$field_value = get_post_meta( $post_id, $meta_key, true );
 
-		if ( isset( $field['layouts'] ) ) { // We're dealing with flexible content layouts.
+		// We're dealing with flexible content layouts.
+		if ( isset( $field['layouts'] ) ) {
 
 			if ( empty( $field_value ) ) {
 				continue;
@@ -266,7 +273,10 @@ function acftc_get_field( $post_id, array $config ) {
 					acftc_get_field( $post_id, $new_config )
 				);
 			}
-		} elseif ( isset( $field['sub_fields'] ) ) { // We're dealing with repeater fields.
+
+		}
+		// We're dealing with repeater fields.
+		elseif ( isset( $field['sub_fields'] ) ) {
 
 			if ( empty( $field_value ) ) {
 				continue;
@@ -287,9 +297,9 @@ function acftc_get_field( $post_id, array $config ) {
 			}
 		} else {
 			$results[ $field['name'] ] = $field_value;
-		} // End if().
+		}
 
-	} // End foreach().
+	}
 
 	return $results;
 }
