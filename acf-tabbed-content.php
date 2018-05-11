@@ -4,7 +4,7 @@
  * Plugin Name:     Tabbed Content
  * Plugin URI:      https://github.com/JiveDig/acf-tabbed-content
  * Description:     Easily create responsive tabbed content for posts and pages.
- * Version:         0.1.0
+ * Version:         0.1.1
  *
  * Author:          Mike Hemberger
  * Author URI:      https://github.com/JiveDig/acf-tabbed-content
@@ -88,7 +88,7 @@ final class ACF_Tabbed_Content {
 
 		// Plugin version.
 		if ( ! defined( 'ACF_TABBED_CONTENT_VERSION' ) ) {
-			define( 'ACF_TABBED_CONTENT_VERSION', '0.1.0' );
+			define( 'ACF_TABBED_CONTENT_VERSION', '0.1.1' );
 		}
 
 		// Plugin Folder Path.
